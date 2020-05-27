@@ -81,16 +81,22 @@ class QM9Dataset(Dataset):
         return len(self.processed_file_names)
 
     def get(self, idx):
-        data = torch.load(os.path.join(self.processed_dir, '{}.pt'.format(idx)))
+        data = torch.load(os.path.join(
+            self.processed_dir, 'graph_files/{}.pt'.format(idx + 1)))
         return data
 
 class Net(nn.Module):
     pass
 
 if __name__ == '__main__':
-    mol = preprocess_qm9.process('xyzfiles/dsgdb9nsd_004049.xyz')
-    print(mol['smiles'])
-    mol_graph = preprocess_qm9.rdkit_process(mol)
+    ds = QM9Dataset('.')
+    ds = ds.shuffle()
+    batch_size = 512
 
-    print(mol_graph.edges)
-    print(from_networkx(mol_graph))
+    slice_len = int(len(ds) * 0.1)
+
+    train_ds = ds[:slice_len * 8]
+    val_ds = ds[slice_len * 8:slice_len * 9]
+    test_ds = ds[slice_len*9:]
+
+    train_loader = DataLoader(train_ds, batch_size = batch_size)
