@@ -7,7 +7,7 @@ from rdkit.Chem import ChemicalFeatures
 from rdkit import RDConfig
 import os
 
-DIR = 'xyzfiles'
+DATADIR = 'xyzfiles'
 PREFIX = 'dsgdb9nsd'
 
 def process_line(atom_line):
@@ -51,7 +51,7 @@ def rdkit_process(dat):
 
     feats = factory.GetFeaturesForMol(mol)
 
-    g = nx.Graph()
+    g = nx.Graph(props=dat['properties'])
 
     for i in range(mol.GetNumAtoms()):
         atom_i = mol.GetAtomWithIdx(i)

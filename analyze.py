@@ -74,7 +74,7 @@ class QM9Dataset(Dataset):
                 data = self.pre_transform(data)
 
             torch.save(data, os.path.join(
-                self.processed_dir, 'graph_files/{}.pt'.format(i)))
+                self.processed_dir, '{}.pt'.format(i)))
             i += 1
 
     def len(self):
@@ -82,11 +82,15 @@ class QM9Dataset(Dataset):
 
     def get(self, idx):
         data = torch.load(os.path.join(
-            self.processed_dir, 'graph_files/{}.pt'.format(idx + 1)))
+            self.processed_dir, '{}.pt'.format(idx + 1)))
         return data
 
 class Net(nn.Module):
-    pass
+    def __init__(self):
+        super(Net, self).__init__()
+
+    def forward(self, data):
+        pass
 
 if __name__ == '__main__':
     ds = QM9Dataset('.')
