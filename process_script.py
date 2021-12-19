@@ -2,8 +2,12 @@ import sys
 import torch
 import networkx as nx
 import os.path
+
+from torch.nn import Sequential as Seq, Linear as Lin, ReLU
 from torch.utils.data import Dataset
 from torch_geometric.utils import from_networkx
+from torch_geometric.nn.conv import GINEConv
+
 from preprocess_qm9 import DATADIR, PREFIX
 from preprocess_qm9 import * 
 
@@ -24,6 +28,9 @@ class QM9Dataset(Dataset):
 qm9 = QM9Dataset('xyzfiles', 'dsgdb9nsd')
 mol = qm9[1000]
 print(mol)
-# fname = sys.argv[1]
-# dat = process(fname)
-# print(rdkit_process(dat))
+nn = Seq(
+        Lin(4, 32), ReLU(), Lin(32, 1))
+
+conv = GINEConv(nn, train_eps=True, edge_dim=1)
+processed = conv(mol.coord.float(), mol.edge_index, mol.bond_type.float().view(-1,1))
+print(processed)
