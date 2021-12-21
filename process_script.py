@@ -34,7 +34,7 @@ nn = Seq(
         Lin(4, 32), ReLU(), Lin(32, 1))
 
 conv = GINEConv(nn, train_eps=True, edge_dim=1)
-for i in range(1000+1,1000+11):
+for i in range(1,11):
     mol = qm9[i]
     print(mol.bond_type)
     processed = conv(mol.coord.float(), mol.edge_index, mol.bond_type.float().view(-1,1))

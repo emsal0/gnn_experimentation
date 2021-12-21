@@ -1,7 +1,5 @@
 import numpy as np
 import networkx as nx
-import pandas
-import rdkit
 import rdkit.Chem as Chem
 from rdkit.Chem import ChemicalFeatures
 from rdkit import RDConfig
@@ -52,9 +50,13 @@ def rdkit_process(dat):
     feats = factory.GetFeaturesForMol(mol)
 
     g = nx.Graph(props=dat['properties'])
+    
+    hydrogen_count = 0
+
 
     for i in range(mol.GetNumAtoms()):
         atom_i = mol.GetAtomWithIdx(i)
+        num_implicit_h = atom_i.GetNumImplicitHs()
 
         try:
             g.add_node(i, element_type=atom_i.GetSymbol(),
@@ -63,7 +65,22 @@ def rdkit_process(dat):
                    is_acceptor=0,
                    aromatic=atom_i.GetIsAromatic(),
                    num_h=atom_i.GetTotalNumHs(),
-                   coord=np.array(dat['atoms'][i]).astype(np.float))
+                   coord=np.array(dat['atoms'][i]).astype(np.float64))
+
+            for i in range(num_implicit_h):
+                h_idx = mol.GetNumAtoms() + hydrogen_count
+
+                g.add_node(h_idx,
+                        element_type = 'H',
+                        atomic_num = 1,
+                        is_donor = 0,
+                        is_acceptor = 0,
+                        aromatic = False,
+                        num_h = 0,
+                        coord = np.array(dat['atoms'][h_idx]).astype(np.float64))
+
+                hydrogen_count += 1
+                pass
         except:
             import pdb, traceback, sys
             extype, value, tb = sys.exc_info()
@@ -87,5 +104,14 @@ def rdkit_process(dat):
                 g.add_edge(i, j, bond_type=edge.GetBondType(),
                            distance=np.linalg.norm(
                                g.nodes[i]['coord'] - g.nodes[j]['coord']))
+
+    h_cursor = mol.GetNumAtoms()
+    for i in range(mol.GetNumAtoms()):
+        atom_i = mol.GetAtomWithIdx(i)
+        for _ in range(atom_i.GetNumImplicitHs()):
+            g.add_edge(i, h_cursor, bond_type = 1.,
+                    distance = np.linalg.norm(g.nodes[i]['coord'] - g.nodes[h_cursor]['coord']))
+            h_cursor += 1
+
 
     return g
